@@ -1,0 +1,57 @@
+name: Version Check
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version bump
+        run: |
+          current_version=$(cat VERSION)
+          
+          # Get the previous version from the last tag
+          previous_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$previous_tag" ]; then
+            # No previous tag, this is the first release
+            echo "First release: $current_version"
+            exit 0
+          fi
+          
+          previous_version=$(echo "$previous_tag" | sed 's/^v//')
+          
+          echo "Previous version: $previous_version"
+          echo "Current version: $current_version"
+          
+          # Parse versions
+          prev_major=$(echo "$previous_version" | cut -d. -f1)
+          prev_minor=$(echo "$previous_version" | cut -d. -f2)
+          prev_patch=$(echo "$previous_version" | cut -d. -f3)
+          
+          curr_major=$(echo "$current_version" | cut -d. -f1)
+          curr_minor=$(echo "$current_version" | cut -d. -f2)
+          curr_patch=$(echo "$current_version" | cut -d. -f3)
+          
+          # Check if version was bumped
+          if [ "$curr_major" -gt "$prev_major" ]; then
+            echo "Major version bumped"
+            exit 0
+          elif [ "$curr_minor" -gt "$prev_minor" ]; then
+            echo "Minor version bumped"
+            exit 0
+          elif [ "$curr_patch" -gt "$prev_patch" ]; then
+            echo "Patch version bumped"
+            exit 0
+          else
+            echo "ERROR: No version bump detected!"
+            echo "Previous: $previous_version, Current: $current_version"
+            exit 1
+          fi

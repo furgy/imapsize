@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Mailbox List{% endblock %}
+{% block content %}
+    <div class="row justify-content-md-center h-100">
+        <div class="col">
+            <div class="jumbotron mt-3" style="background-color: #ffffff; padding: 2rem">
+                <div class="row mb-2">
+                    <div class="col"><h4 class="mb-0">Mailbox List</h4></div>
+                    <div class="col text-right">Logged in as: <a href="{{url_for('logout')}}">{{ current_user.id }}</a></div>
+                </div>
+                <div class="row">
+                    <div class="col mb-3">Total Mailbox Size: {{ '{:,}'.format(tms) }}</div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                    {% set category = 'primary' %}
+                                {% endif %}		
+                            <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}            
+                    </div>
+                </div>
+    <div class="row">
+        <div class="col">
+            <table id="table_id" class="table table-striped table-hover table-bordered">
+                <thead>
+                    <th>Mailbox</th>
+                    <th>Size</th>
+                </thead>
+                <tbody>
+                    {% for box in sbd %}
+                    <tr>
+                        <td><a href='{{ url_for("listmail") + "?mb=" + box[0] }}'>{{ box[0] | replace('"','') }}</a></td>
+                        <td>{{ '{:,}'.format(box[1]) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        $(document).ready( function () {
+            $('#table_id').DataTable( {
+                render: $.fn.dataTable.render.number( ',', '.'),
+                "pageLength": 25,
+                "order": [[1, 'desc'],[0,'asc']]
+            });
+        } );
+    </script>
+            </div>
+        </div>
+    </div>
+{% endblock %}
